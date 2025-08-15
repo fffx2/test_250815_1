@@ -7,7 +7,10 @@
     --primary-text-color: #2c3e50;
     --secondary-text-color: #7f8c8d;
     --border-color: #ecf0f1;
-    --accent-color: #3498db;
+    /* ✅ 색상 변경: 새로운 브랜드 컬러 (그레이쉬 퍼플/핑크) */
+    --brand-purple: #9b59b6;
+    --brand-purple-dark: #8e44ad;
+    --accent-color: var(--brand-purple); /* 기존 accent-color를 새 색상으로 연결 */
     --white-color: #ffffff;
     --danger-color: #e74c3c;
     --warning-color: #f39c12;
@@ -28,8 +31,8 @@ body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color);
 .tab-navigation { background: white; border-bottom: 2px solid var(--border-color); position: sticky; top: 0; z-index: 100; }
 .nav-container { max-width: 1200px; margin: 0 auto; display: flex; }
 .tab-btn { padding: 1rem 2rem; background: none; border: none; font-size: 1rem; font-weight: 500; cursor: pointer; transition: all 0.3s ease; border-bottom: 3px solid transparent; color: var(--secondary-text-color); display: flex; align-items: center; gap: 8px; }
-.tab-btn.active { color: var(--primary-text-color); border-bottom-color: var(--accent-color); background: linear-gradient(to bottom, transparent, rgba(52, 152, 219, 0.05)); }
-.tab-btn:hover { color: var(--primary-text-color); background: rgba(52, 152, 219, 0.05); }
+.tab-btn.active { color: var(--primary-text-color); border-bottom-color: var(--accent-color); background: linear-gradient(to bottom, transparent, rgba(155, 89, 182, 0.05)); }
+.tab-btn:hover { color: var(--primary-text-color); background: rgba(155, 89, 182, 0.05); }
 
 /* =================================================================
    3. 메인 컨텐츠 및 페이지 레이아웃
@@ -49,23 +52,31 @@ body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color);
 .section-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; }
 .checkbox-group { display: flex; flex-wrap: wrap; gap: 1rem; }
 .checkbox-option { display: flex; align-items: center; padding: 0.75rem 1rem; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
-.checkbox-option:hover { border-color: var(--accent-color); background: rgba(52, 152, 219, 0.05); }
+.checkbox-option:hover { border-color: var(--accent-color); background: rgba(155, 89, 182, 0.05); }
 .checkbox-option input[type="checkbox"] { margin-right: 0.5rem; }
 .checkbox-option input[type="checkbox"]:checked ~ span { font-weight: 600; color: var(--accent-color); }
 .checkbox-option input[type="checkbox"]:checked ~ span::before { content: '✔ '; }
-.age-slider-container { position: relative; margin: 1rem 0; }
-.age-slider { width: 100%; }
-.age-display { text-align: center; margin-top: 0.5rem; font-weight: 500; color: var(--accent-color); }
+.age-display { text-align: center; margin-top: 1rem; font-weight: 500; color: var(--accent-color); font-size: 1.1rem; }
 .text-input { width: 100%; padding: 0.75rem 1rem; border: 2px solid var(--border-color); border-radius: 8px; font-size: 1rem; }
 .text-input:focus { outline: none; border-color: var(--accent-color); }
 .btn { padding: 0.875rem 2rem; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 0.5rem; }
-.btn-primary { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white; }
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3); }
+.btn-primary { background: linear-gradient(135deg, var(--brand-purple) 0%, var(--brand-purple-dark) 100%); color: white; }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4); }
 .results-section { margin-top: 2rem; padding: 2rem; background: var(--bg-color); border-radius: 12px; border: 1px solid var(--border-color); display: none; }
 .results-section.show { display: block; animation: slideUp 0.5s ease; }
 @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-/* AI 생성 결과 카드 스타일 */
+/* ✅ 새로운 연령 범위 슬라이더 스타일 */
+.age-slider-container { position: relative; width: 100%; height: 50px; }
+.range-slider-wrapper { position: relative; height: 20px; }
+.slider-track, .slider-range { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); height: 4px; border-radius: 2px; }
+.slider-track { background-color: var(--border-color); }
+.slider-range { background-color: var(--accent-color); }
+.range-slider-wrapper input[type="range"] { position: absolute; width: 100%; height: 4px; -webkit-appearance: none; background: transparent; pointer-events: none; }
+.range-slider-wrapper input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; background-color: var(--accent-color); border-radius: 50%; border: 3px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.2); cursor: pointer; pointer-events: auto; }
+.range-slider-wrapper input[type="range"]::-moz-range-thumb { -moz-appearance: none; width: 20px; height: 20px; background-color: var(--accent-color); border-radius: 50%; border: 3px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.2); cursor: pointer; pointer-events: auto; }
+
+/* AI 생성 결과 카드 스타일 (이하 생략 - 기존과 동일) */
 .font-system-card, .color-system-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
 .card-header { display: flex; align-items: center; gap: 12px; font-size: 18px; font-weight: 700; margin-bottom: 20px; }
 .font-item { display: grid; grid-template-columns: 80px 1fr; align-items: center; border-bottom: 1px solid var(--border-color); padding: 12px 0; font-size: 14px; }
@@ -90,7 +101,7 @@ body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color);
 .feedback-layout { display: flex; gap: 2rem; height: calc(100vh - 200px); }
 .analysis-panel { flex: 2; background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); display: flex; flex-direction: column; }
 .upload-area { border: 2px dashed #bdc3c7; border-radius: 12px; padding: 3rem; text-align: center; margin-bottom: 2rem; transition: all 0.3s ease; cursor: pointer; }
-.upload-area:hover { border-color: var(--accent-color); background: rgba(52, 152, 219, 0.05); }
+.upload-area:hover { border-color: var(--accent-color); background: rgba(155, 89, 182, 0.05); }
 .upload-icon { font-size: 3rem; color: #bdc3c7; margin-bottom: 1rem; }
 .upload-text { font-size: 1.1rem; color: var(--secondary-text-color); margin-bottom: 0.5rem; }
 .upload-subtext { font-size: 0.875rem; color: #95a5a6; }
@@ -121,7 +132,7 @@ body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color);
 .chatbot-subtitle { font-size: 0.875rem; opacity: 0.9; margin-top: 0.25rem; }
 .chat-messages { flex: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; }
 .message { max-width: 85%; padding: 0.875rem 1rem; border-radius: 16px; font-size: 0.9rem; line-height: 1.4; }
-.message.user { align-self: flex-end; background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white; border-bottom-right-radius: 4px; }
+.message.user { align-self: flex-end; background: linear-gradient(135deg, var(--brand-purple) 0%, var(--brand-purple-dark) 100%); color: white; border-bottom-right-radius: 4px; }
 .message.ai { align-self: flex-start; background: var(--bg-color); border: 1px solid var(--border-color); border-bottom-left-radius: 4px; }
 .typing::after { content: '▋'; animation: blink 1s step-end infinite; }
 @keyframes blink { 50% { opacity: 0; } }
@@ -129,8 +140,8 @@ body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color);
 .chat-input-wrapper { display: flex; gap: 0.5rem; align-items: flex-end; }
 .chat-input { flex: 1; min-height: 40px; max-height: 120px; padding: 0.75rem 1rem; border: 2px solid var(--border-color); border-radius: 20px; resize: none; outline: none; font-family: inherit; line-height: 1.4; }
 .chat-input:focus { border-color: var(--accent-color); }
-.send-button { padding: 0.75rem; background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
-.send-button:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3); }
+.send-button { padding: 0.75rem; background: linear-gradient(135deg, var(--brand-purple) 0%, var(--brand-purple-dark) 100%); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
+.send-button:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(155, 89, 182, 0.4); }
 
 /* =================================================================
    7. 로딩 스피너 및 기타

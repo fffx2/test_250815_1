@@ -1,11 +1,4 @@
-/**
- * =================================================================
- * TypoLab Application Script (Client-Side)
- * - 이 스크립트는 Netlify Function과 통신하여 모든 UI 인터랙션을 처리합니다.
- * =================================================================
- */
-
-// --- 1. 핵심 클래스 정의 ---
+// 파일 위치: public/script.js
 
 class ErrorHandler {
     static handle(error, context = '작업') {
@@ -14,10 +7,7 @@ class ErrorHandler {
     }
 }
 
-// 💥 삭제됨: APIKeyManager 클래스는 더 이상 필요 없습니다.
-
 class OpenAIService {
-    // OpenAI에 직접 요청하는 대신, 우리가 만든 Netlify 함수를 호출하는 헬퍼 함수입니다.
     static async #callNetlifyFunction(prompt) {
         try {
             const response = await fetch('/.netlify/functions/getOpenAiResult', {
@@ -26,10 +16,11 @@ class OpenAIService {
                 body: JSON.stringify({ prompt: prompt })
             });
             if (!response.ok) {
-                throw new Error('Netlify 함수를 호출하는 데 실패했습니다.');
+                const errorText = await response.text();
+                throw new Error(`서버 응답 오류: ${response.status} ${response.statusText}. 내용: ${errorText}`);
             }
             const data = await response.json();
-            return data.result; // Netlify 함수로부터 받은 AI의 답변
+            return data.result;
         } catch (error) {
             ErrorHandler.handle(error, 'AI 서비스 통신');
             throw error;
@@ -37,7 +28,6 @@ class OpenAIService {
     }
 
     static async generateGuide(inputs) {
-        // 프롬프트 생성 로직은 그대로 유지합니다.
         const prompt = `
             당신은 한국 시장을 잘 이해하는 시니어 UX/UI 디자이너입니다. 사용자가 입력한 아래 조건에 맞춰 웹 디자인 시스템을 한국어로 제안해주세요. 제안하는 모든 색상은 배경으로 사용될 때 흰색(#FFFFFF) 또는 검은색(#000000) 글씨와 함께 WCAG AA 등급 이상의 명도 대비를 만족해야 합니다.
             사용자 입력 조건:
@@ -52,18 +42,14 @@ class OpenAIService {
               "grayscaleSystem": ["#212529", "#495057", "#868e96", "#ced4da", "#f8f9fa"]
             }
         `;
-        // OpenAI에 직접 요청하는 대신, Netlify 함수를 호출합니다.
         const rawJsonResult = await this.#callNetlifyFunction(prompt);
-        return JSON.parse(rawJsonResult); // 결과가 JSON 문자열이므로 객체로 변환합니다.
+        return JSON.parse(rawJsonResult);
     }
 
     static async getChatReply(messages) {
-        // 채팅 기록을 하나의 프롬프트로 만듭니다.
-        const systemMessage = `당신은 경력 15년차의 UI/UX 디자인 팀장입니다. 사용자는 당신의 팀원인 주니어 디자이너입니다. 항상 다음 원칙에 따라 답변해주세요: 1. 말투: 전문가적이고 신뢰감 있지만, 팀원을 가르치듯 친절하고 상세하게 설명합니다. "음, 좋은 질문이네요.", "이 부분은 실무에서 자주 하는 실수인데..." 와 같은 어투를 사용하세요. 2. 내용: 단순히 답만 알려주지 말고, '왜' 그렇게 해야 하는지 디자인 원칙이나 사용자 경험(UX) 관점에서 근거를 제시합니다. 3. 실용성: 실제 웹 디자인 실무에서 바로 적용할 수 있는 구체적인 팁이나 대안을 함께 제안합니다. 4. 절대 마크다운(**, *, # 등)을 사용하지 말고, 순수 텍스트로만 답변합니다.`;
+        const systemMessage = `당신은 실용적인 조언을 하는 UI/UX 디자인 전문가입니다. 사용자의 질문에 대해 핵심만 간결하게 답변해주세요. 다음 원칙을 반드시 지켜주세요: 1. 답변은 항상 6줄 이내로 작성합니다. 2. 전문가적이지만 친절한 말투를 사용합니다. 3. 마크다운(**, *, # 등)을 사용하지 않고, 순수 텍스트로만 답변합니다.`;
         const chatHistoryString = messages.map(m => `${m.role}: ${m.content}`).join('\n');
-        const prompt = `${systemMessage}\n\n[대화 기록]\n${chatHistoryString}`;
-
-        // OpenAI에 직접 요청하는 대신, Netlify 함수를 호출합니다.
+        const prompt = `${systemMessage}\n\n[대화 기록]\n${chatHistoryString}\n\n[마지막 질문]\n${messages[messages.length-1].content}`;
         const reply = await this.#callNetlifyFunction(prompt);
         return reply.replace(/\*\*(.*?)\*\*/g, '$1');
     }
@@ -105,13 +91,38 @@ class TypoLab {
         this.analyzer = new TypographyAnalyzer();
         this.chatHistory = [];
         this.initializeEventListeners();
-        // 💥 수정됨: APIKeyManager.init() 호출을 삭제했습니다.
+        this.updateAgeRangeSlider(); // ✅ 앱 시작 시 슬라이더 초기화
     }
-    cacheDOMElements() { this.dom = { tabBtns: document.querySelectorAll('.tab-btn'), pages: document.querySelectorAll('.tab-content'), generateGuideBtn: document.getElementById('generateGuideBtn'), guideResultSection: document.getElementById('guideResults'), ageRange: document.getElementById('ageRange'), ageDisplay: document.getElementById('ageDisplay'), fileInput: document.getElementById('fileInput'), uploadArea: document.getElementById('uploadArea'), statusIndicator: document.getElementById('statusIndicator'), statusText: document.getElementById('statusText'), analyzeBtn: document.getElementById('analyzeBtn'), analysisResults: document.getElementById('analysisResults'), chatMessages: document.getElementById('chatMessages'), chatInput: document.getElementById('chatInput'), sendChatBtn: document.getElementById('sendChatBtn'), loadingOverlay: document.getElementById('loadingOverlay'), loadingText: document.getElementById('loadingText'), }; }
+    cacheDOMElements() {
+        this.dom = {
+            tabBtns: document.querySelectorAll('.tab-btn'),
+            pages: document.querySelectorAll('.tab-content'),
+            generateGuideBtn: document.getElementById('generateGuideBtn'),
+            guideResultSection: document.getElementById('guideResults'),
+            // ✅ 수정된 슬라이더 요소들
+            ageRangeMin: document.getElementById('ageRangeMin'),
+            ageRangeMax: document.getElementById('ageRangeMax'),
+            sliderRange: document.getElementById('sliderRange'),
+            ageDisplay: document.getElementById('ageDisplay'),
+            fileInput: document.getElementById('fileInput'),
+            uploadArea: document.getElementById('uploadArea'),
+            statusIndicator: document.getElementById('statusIndicator'),
+            statusText: document.getElementById('statusText'),
+            analyzeBtn: document.getElementById('analyzeBtn'),
+            analysisResults: document.getElementById('analysisResults'),
+            chatMessages: document.getElementById('chatMessages'),
+            chatInput: document.getElementById('chatInput'),
+            sendChatBtn: document.getElementById('sendChatBtn'),
+            loadingOverlay: document.getElementById('loadingOverlay'),
+            loadingText: document.getElementById('loadingText'),
+        };
+    }
     initializeEventListeners() {
         this.dom.tabBtns.forEach(btn => btn.addEventListener('click', () => this.switchTab(btn.dataset.tab)));
         this.dom.generateGuideBtn.addEventListener('click', () => this.generateGuide());
-        this.dom.ageRange.addEventListener('input', e => this.updateAgeDisplay(e.target.value));
+        // ✅ 수정된 슬라이더 이벤트 리스너
+        this.dom.ageRangeMin.addEventListener('input', () => this.updateAgeRangeSlider());
+        this.dom.ageRangeMax.addEventListener('input', () => this.updateAgeRangeSlider());
         this.dom.uploadArea.addEventListener('click', () => this.dom.fileInput.click());
         this.dom.fileInput.addEventListener('change', e => this.handleFile(e.target.files[0]));
         this.dom.uploadArea.addEventListener('dragover', e => { e.preventDefault(); this.dom.uploadArea.classList.add('dragover'); });
@@ -121,6 +132,36 @@ class TypoLab {
         this.dom.sendChatBtn.addEventListener('click', () => this.sendChatMessage());
         this.dom.chatInput.addEventListener('keypress', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.sendChatMessage(); } });
     }
+
+    // ✅ 새로운 연령 범위 슬라이더 업데이트 함수
+    updateAgeRangeSlider() {
+        let minVal = parseInt(this.dom.ageRangeMin.value);
+        let maxVal = parseInt(this.dom.ageRangeMax.value);
+
+        // 두 핸들이 겹치지 않도록 보정
+        if (maxVal < minVal + 5) {
+            if (event.target.id === "ageRangeMin") {
+                this.dom.ageRangeMin.value = maxVal - 5;
+                minVal = maxVal - 5;
+            } else {
+                this.dom.ageRangeMax.value = minVal + 5;
+                maxVal = minVal + 5;
+            }
+        }
+
+        const min = this.dom.ageRangeMin.min;
+        const max = this.dom.ageRangeMin.max;
+        
+        // 슬라이더 사이의 색상 채우기
+        this.dom.sliderRange.style.left = ((minVal - min) / (max - min)) * 100 + '%';
+        this.dom.sliderRange.style.right = 100 - (((maxVal - min) / (max - min)) * 100) + '%';
+        
+        // 텍스트 업데이트
+        const minAgeText = minVal < 20 ? "10대" : `${minVal}대`;
+        const maxAgeText = maxVal > 60 ? "60대 이상" : `${maxVal}대`;
+        this.dom.ageDisplay.textContent = `${minAgeText} - ${maxAgeText}`;
+    }
+
     async generateGuide() {
         this.showLoading(true, 'AI가 디자인 시스템을 생성 중입니다...');
         try {
@@ -144,7 +185,6 @@ class TypoLab {
         const rating = this.analyzer.getWCAGRating(bestContrast);
         return `<div class="color-item"><div class="color-item-header"><div class="color-swatch-lg" style="background-color:${color.hex};"></div><div class="color-info"><h5>${color.name} (${color.hex})</h5><p>${color.usage}</p></div></div><div class="color-combinations"><div class="combo-card"><div class="combo-preview" style="background-color:${color.hex}; color:${bestTextColor};">Aa</div><div class="combo-details"><strong>${bestContrast.toFixed(2)}:1</strong> <span class="wcag-badge wcag-${rating.toLowerCase()}">${rating}</span></div></div></div></div>`;
     }
-    updateAgeDisplay(value) { const age = parseInt(value); if(age < 20) this.dom.ageDisplay.textContent = "10대"; else if(age > 60) this.dom.ageDisplay.textContent = "60대 이상"; else this.dom.ageDisplay.textContent = `${Math.round(age/10)*10}대 중심`; }
     handleFile(file) { if (!file || !file.type.includes('html')) return ErrorHandler.handle(new Error('HTML 파일만 업로드 가능합니다.'), '파일 처리'); this.uploadedFile = file; this.dom.statusIndicator.classList.add('show'); this.dom.statusText.textContent = `준비 완료: ${file.name}`; this.dom.analyzeBtn.style.display = 'inline-flex'; this.dom.uploadArea.style.display = 'none'; }
     async runAnalysis() {
         if (!this.uploadedFile) return;
@@ -190,5 +230,3 @@ class TypoLab {
 }
 
 document.addEventListener('DOMContentLoaded', () => { try { window.typoLabApp = new TypoLab(); } catch (error) { ErrorHandler.handle(error, "앱 시작"); } });
-
-// 💥 삭제됨: 이전에 테스트용으로 추가했던 askMyWebsite 함수는 TypoLab 클래스에 통합되었으므로 필요 없습니다.

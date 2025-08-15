@@ -29,7 +29,6 @@
     </nav>
 
     <main class="main-content">
-        <!-- Typo Guide 탭 -->
         <div id="guide-page" class="tab-content active">
             <div class="guide-container">
                 <h2 class="page-title">디자인 콘셉트 기반 폰트 가이드라인</h2>
@@ -47,8 +46,13 @@
                 <div class="form-section">
                     <h3 class="section-title">서비스 대상 연령</h3>
                     <div class="age-slider-container">
-                        <input type="range" min="10" max="70" value="30" class="age-slider" id="ageRange">
-                        <p class="age-display" id="ageDisplay">30대 중심</p>
+                        <div class="range-slider-wrapper">
+                            <div class="slider-track"></div>
+                            <div class="slider-range" id="sliderRange"></div>
+                            <input type="range" min="10" max="70" value="20" class="age-slider" id="ageRangeMin">
+                            <input type="range" min="10" max="70" value="40" class="age-slider" id="ageRangeMax">
+                        </div>
+                        <p class="age-display" id="ageDisplay">20대 - 40대</p>
                     </div>
                 </div>
                 <div class="form-section">
@@ -73,7 +77,6 @@
             </div>
         </div>
 
-        <!-- Feedback 탭 -->
         <div id="feedback-page" class="tab-content">
             <div class="feedback-layout">
                 <div class="analysis-panel">
@@ -92,6 +95,7 @@
                         <i class="fas fa-vial"></i> 분석 시작하기
                     </button>
                     <div class="analysis-results" id="analysisResults"></div>
+                    <iframe id="previewFrame" style="display: none;"></iframe>
                 </div>
                 <aside class="chatbot-panel">
                     <div class="chatbot-header">
@@ -112,7 +116,6 @@
         </div>
     </main>
 
-    <!-- 전역 로딩 오버레이 -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner"></div>
         <p id="loadingText"></p>
