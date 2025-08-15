@@ -1,7 +1,7 @@
 /**
  * =================================================================
  * TypoLab Application Script (Client-Side)
- * - 이 스크립트는 서버와 통신하여 API 키를 받아오고, 모든 UI 인터랙션을 처리합니다.
+ * - 이 스크립트는 Netlify Function과 통신하여 모든 UI 인터랙션을 처리합니다.
  * =================================================================
  */
 
@@ -14,35 +14,30 @@ class ErrorHandler {
     }
 }
 
-class APIKeyManager {
-    static #apiKey = null;
-    static async init() {
-        if (this.#apiKey) return;
-        try {
-            const response = await fetch('/api/key');
-            if (!response.ok) throw new Error('서버에서 API 키를 가져오는데 실패했습니다.');
-            const data = await response.json();
-            this.#apiKey = data.apiKey;
-        } catch (error) {
-            ErrorHandler.handle(error, 'API 키 초기화');
-        }
-    }
-    static get() { return this.#apiKey; }
-}
+// 💥 삭제됨: APIKeyManager 클래스는 더 이상 필요 없습니다.
 
 class OpenAIService {
-    static #API_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
-    static #MODEL = 'gpt-4o';
-
-    static async #fetchAPI(body) {
-        const apiKey = APIKeyManager.get();
-        if (!apiKey || apiKey === "sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx") throw new Error("유효한 OpenAI API 키가 .env 파일에 설정되지 않았습니다.");
-        const response = await fetch(this.#API_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` }, body: JSON.stringify(body) });
-        if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error.message); }
-        return response.json();
+    // OpenAI에 직접 요청하는 대신, 우리가 만든 Netlify 함수를 호출하는 헬퍼 함수입니다.
+    static async #callNetlifyFunction(prompt) {
+        try {
+            const response = await fetch('/.netlify/functions/getOpenAiResult', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: prompt })
+            });
+            if (!response.ok) {
+                throw new Error('Netlify 함수를 호출하는 데 실패했습니다.');
+            }
+            const data = await response.json();
+            return data.result; // Netlify 함수로부터 받은 AI의 답변
+        } catch (error) {
+            ErrorHandler.handle(error, 'AI 서비스 통신');
+            throw error;
+        }
     }
 
     static async generateGuide(inputs) {
+        // 프롬프트 생성 로직은 그대로 유지합니다.
         const prompt = `
             당신은 한국 시장을 잘 이해하는 시니어 UX/UI 디자이너입니다. 사용자가 입력한 아래 조건에 맞춰 웹 디자인 시스템을 한국어로 제안해주세요. 제안하는 모든 색상은 배경으로 사용될 때 흰색(#FFFFFF) 또는 검은색(#000000) 글씨와 함께 WCAG AA 등급 이상의 명도 대비를 만족해야 합니다.
             사용자 입력 조건:
@@ -57,16 +52,20 @@ class OpenAIService {
               "grayscaleSystem": ["#212529", "#495057", "#868e96", "#ced4da", "#f8f9fa"]
             }
         `;
-        const body = { model: this.#MODEL, messages: [{ role: 'user', content: prompt }], response_format: { type: "json_object" } };
-        const data = await this.#fetchAPI(body);
-        return JSON.parse(data.choices[0].message.content);
+        // OpenAI에 직접 요청하는 대신, Netlify 함수를 호출합니다.
+        const rawJsonResult = await this.#callNetlifyFunction(prompt);
+        return JSON.parse(rawJsonResult); // 결과가 JSON 문자열이므로 객체로 변환합니다.
     }
 
     static async getChatReply(messages) {
-        const systemMessage = { role: 'system', content: `당신은 경력 15년차의 UI/UX 디자인 팀장입니다. 사용자는 당신의 팀원인 주니어 디자이너입니다. 항상 다음 원칙에 따라 답변해주세요: 1. 말투: 전문가적이고 신뢰감 있지만, 팀원을 가르치듯 친절하고 상세하게 설명합니다. "음, 좋은 질문이네요.", "이 부분은 실무에서 자주 하는 실수인데..." 와 같은 어투를 사용하세요. 2. 내용: 단순히 답만 알려주지 말고, '왜' 그렇게 해야 하는지 디자인 원칙이나 사용자 경험(UX) 관점에서 근거를 제시합니다. 3. 실용성: 실제 웹 디자인 실무에서 바로 적용할 수 있는 구체적인 팁이나 대안을 함께 제안합니다. 4. 절대 마크다운(**, *, # 등)을 사용하지 말고, 순수 텍스트로만 답변합니다.` };
-        const body = { model: this.#MODEL, messages: [systemMessage, ...messages] };
-        const data = await this.#fetchAPI(body);
-        return data.choices[0].message.content.replace(/\*\*(.*?)\*\*/g, '$1');
+        // 채팅 기록을 하나의 프롬프트로 만듭니다.
+        const systemMessage = `당신은 경력 15년차의 UI/UX 디자인 팀장입니다. 사용자는 당신의 팀원인 주니어 디자이너입니다. 항상 다음 원칙에 따라 답변해주세요: 1. 말투: 전문가적이고 신뢰감 있지만, 팀원을 가르치듯 친절하고 상세하게 설명합니다. "음, 좋은 질문이네요.", "이 부분은 실무에서 자주 하는 실수인데..." 와 같은 어투를 사용하세요. 2. 내용: 단순히 답만 알려주지 말고, '왜' 그렇게 해야 하는지 디자인 원칙이나 사용자 경험(UX) 관점에서 근거를 제시합니다. 3. 실용성: 실제 웹 디자인 실무에서 바로 적용할 수 있는 구체적인 팁이나 대안을 함께 제안합니다. 4. 절대 마크다운(**, *, # 등)을 사용하지 말고, 순수 텍스트로만 답변합니다.`;
+        const chatHistoryString = messages.map(m => `${m.role}: ${m.content}`).join('\n');
+        const prompt = `${systemMessage}\n\n[대화 기록]\n${chatHistoryString}`;
+
+        // OpenAI에 직접 요청하는 대신, Netlify 함수를 호출합니다.
+        const reply = await this.#callNetlifyFunction(prompt);
+        return reply.replace(/\*\*(.*?)\*\*/g, '$1');
     }
 }
 
@@ -101,7 +100,13 @@ class TypographyAnalyzer {
 }
 
 class TypoLab {
-    constructor() { this.cacheDOMElements(); this.analyzer = new TypographyAnalyzer(); this.chatHistory = []; this.initializeEventListeners(); APIKeyManager.init(); }
+    constructor() {
+        this.cacheDOMElements();
+        this.analyzer = new TypographyAnalyzer();
+        this.chatHistory = [];
+        this.initializeEventListeners();
+        // 💥 수정됨: APIKeyManager.init() 호출을 삭제했습니다.
+    }
     cacheDOMElements() { this.dom = { tabBtns: document.querySelectorAll('.tab-btn'), pages: document.querySelectorAll('.tab-content'), generateGuideBtn: document.getElementById('generateGuideBtn'), guideResultSection: document.getElementById('guideResults'), ageRange: document.getElementById('ageRange'), ageDisplay: document.getElementById('ageDisplay'), fileInput: document.getElementById('fileInput'), uploadArea: document.getElementById('uploadArea'), statusIndicator: document.getElementById('statusIndicator'), statusText: document.getElementById('statusText'), analyzeBtn: document.getElementById('analyzeBtn'), analysisResults: document.getElementById('analysisResults'), chatMessages: document.getElementById('chatMessages'), chatInput: document.getElementById('chatInput'), sendChatBtn: document.getElementById('sendChatBtn'), loadingOverlay: document.getElementById('loadingOverlay'), loadingText: document.getElementById('loadingText'), }; }
     initializeEventListeners() {
         this.dom.tabBtns.forEach(btn => btn.addEventListener('click', () => this.switchTab(btn.dataset.tab)));
@@ -186,28 +191,4 @@ class TypoLab {
 
 document.addEventListener('DOMContentLoaded', () => { try { window.typoLabApp = new TypoLab(); } catch (error) { ErrorHandler.handle(error, "앱 시작"); } });
 
-
-
-
-/* api호출 */
-async function askMyWebsite(question) {
-  // 화면에 "답변 생성 중..." 같은 메시지를 표시하는 로직을 여기에 추가할 수 있습니다.
-
-  const response = await fetch('/.netlify/functions/getOpenAiResult', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: question }) // 우리가 만든 함수에 질문을 보냅니다.
-  });
-
-  const data = await response.json();
-  const aiAnswer = data.result;
-
-  console.log('AI의 답변:', aiAnswer); // AI의 답변을 콘솔에 출력합니다.
-  
-  // 이 답변(aiAnswer)을 웹페이지의 특정 요소(예: div)에 표시하는 코드를 여기에 추가하면 됩니다.
-  // document.getElementById('answer-box').innerText = aiAnswer;
-}
-
-// 아래는 함수를 실행하는 예시입니다.
-// 실제로는 사용자가 버튼을 클릭했을 때 이 함수가 실행되도록 만들면 됩니다.
-askMyWebsite("대한민국의 수도는 어디야?");
+// 💥 삭제됨: 이전에 테스트용으로 추가했던 askMyWebsite 함수는 TypoLab 클래스에 통합되었으므로 필요 없습니다.
