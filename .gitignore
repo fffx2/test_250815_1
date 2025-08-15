@@ -1,0 +1,6 @@
+# 노드모듈 제외
+node_modules
+
+# API키 제외
+.env
+

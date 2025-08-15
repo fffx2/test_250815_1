@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TypoLab - 웹타이포그래피 접근성 전문 도구</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-content">
+            <h1 class="logo">TypoLab</h1>
+            <p class="tagline">웹타이포그래피 접근성 전문 도구 - WCAG 기준 색상 시스템 & 타이포그래피 가이드</p>
+        </div>
+    </header>
+
+    <nav class="tab-navigation">
+        <div class="nav-container">
+            <button class="tab-btn active" data-tab="guide">
+                <i class="fas fa-drafting-compass"></i> Typo Guide
+            </button>
+            <button class="tab-btn" data-tab="feedback">
+                <i class="fas fa-vial-circle-check"></i> Feedback
+            </button>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <!-- Typo Guide 탭 -->
+        <div id="guide-page" class="tab-content active">
+            <div class="guide-container">
+                <h2 class="page-title">디자인 콘셉트 기반 폰트 가이드라인</h2>
+                <div class="form-section">
+                    <h3 class="section-title">서비스 목적 (중복 선택 가능)</h3>
+                    <div class="checkbox-group" id="purpose-group">
+                        <label class="checkbox-option"><input type="checkbox" name="purpose" value="기업/비즈니스"><span>기업/비즈니스</span></label>
+                        <label class="checkbox-option"><input type="checkbox" name="purpose" value="교육/학습"><span>교육/학습</span></label>
+                        <label class="checkbox-option"><input type="checkbox" name="purpose" value="창작/아트"><span>창작/아트</span></label>
+                        <label class="checkbox-option"><input type="checkbox" name="purpose" value="쇼핑몰/커머스"><span>쇼핑몰/커머스</span></label>
+                        <label class="checkbox-option"><input type="checkbox" name="purpose" value="뉴스/미디어"><span>뉴스/미디어</span></label>
+                        <label class="checkbox-option"><input type="checkbox" name="purpose" value="포트폴리오"><span>포트폴리오</span></label>
+                    </div>
+                </div>
+                <div class="form-section">
+                    <h3 class="section-title">서비스 대상 연령</h3>
+                    <div class="age-slider-container">
+                        <input type="range" min="10" max="70" value="30" class="age-slider" id="ageRange">
+                        <p class="age-display" id="ageDisplay">30대 중심</p>
+                    </div>
+                </div>
+                <div class="form-section">
+                    <h3 class="section-title">서비스 핵심 키워드</h3>
+                    <input type="text" class="text-input" id="keywords" placeholder="예: 신뢰성, 혁신, 친근함, 전문성, 창의성, 미니멀, 고급스러움...">
+                </div>
+                <div class="form-section">
+                    <h3 class="section-title">원하는 분위기 (중복 선택 가능)</h3>
+                    <div class="checkbox-group" id="mood-group">
+                        <label class="checkbox-option"><input type="checkbox" name="mood" value="전문적이고 신뢰감 있는"><span>전문적</span></label>
+                        <label class="checkbox-option"><input type="checkbox" name="mood" value="친근하고 편안한"><span>친근함</span></label>
+                        <label class="checkbox-option"><input type="checkbox" name="mood" value="모던하고 세련된"><span>모던함</span></label>
+                        <label class="checkbox-option"><input type="checkbox" name="mood" value="창의적이고 독창적인"><span>창의적</span></label>
+                        <label class="checkbox-option"><input type="checkbox" name="mood" value="고급스럽고 우아한"><span>고급스러움</span></label>
+                        <label class="checkbox-option"><input type="checkbox" name="mood" value="AI 추천"><span>🤖 AI 추천</span></label>
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="generateGuideBtn">
+                    <i class="fas fa-magic-wand-sparkles"></i> 가이드라인 생성하기
+                </button>
+                <div class="results-section" id="guideResults"></div>
+            </div>
+        </div>
+
+        <!-- Feedback 탭 -->
+        <div id="feedback-page" class="tab-content">
+            <div class="feedback-layout">
+                <div class="analysis-panel">
+                    <h2 class="page-title">WCAG 기준 웹타이포그래피 분석</h2>
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon"><i class="fas fa-file-arrow-up"></i></div>
+                        <div class="upload-text">HTML 파일을 드래그하거나 클릭하여 선택하세요</div>
+                        <div class="upload-subtext">지원 형식: .html</div>
+                        <input type="file" id="fileInput" accept=".html" style="display: none;">
+                    </div>
+                    <div class="status-indicator" id="statusIndicator">
+                        <div class="status-spinner"></div>
+                        <span id="statusText"></span>
+                    </div>
+                    <button class="btn btn-primary" id="analyzeBtn" style="display: none;">
+                        <i class="fas fa-vial"></i> 분석 시작하기
+                    </button>
+                    <div class="analysis-results" id="analysisResults"></div>
+                </div>
+                <aside class="chatbot-panel">
+                    <div class="chatbot-header">
+                        <h3 class="chatbot-title">전문 디자인 컨설턴트</h3>
+                        <p class="chatbot-subtitle">실무 경험을 바탕으로 상세한 조언을 제공합니다</p>
+                    </div>
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="message ai">안녕하세요! 저는 10년 이상의 실무 경험을 가진 디자인 팀장입니다. 궁금한 점이나 분석 결과에 대해 자세히 설명해드릴게요.</div>
+                    </div>
+                    <div class="chat-input-container">
+                        <div class="chat-input-wrapper">
+                            <textarea class="chat-input" id="chatInput" placeholder="타이포그래피나 접근성에 대해 질문해보세요..." rows="1"></textarea>
+                            <button class="send-button" id="sendChatBtn"><i class="fas fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </main>
+
+    <!-- 전역 로딩 오버레이 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <p id="loadingText"></p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

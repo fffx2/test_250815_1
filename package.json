@@ -1,0 +1,15 @@
+{
+  "name": "typolab-final",
+  "version": "1.0.0",
+  "description": "AI-based typography guide and feedback system.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
+  }
+}
