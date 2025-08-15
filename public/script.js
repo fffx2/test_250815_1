@@ -185,3 +185,29 @@ class TypoLab {
 }
 
 document.addEventListener('DOMContentLoaded', () => { try { window.typoLabApp = new TypoLab(); } catch (error) { ErrorHandler.handle(error, "앱 시작"); } });
+
+
+
+
+/* api호출 */
+async function askMyWebsite(question) {
+  // 화면에 "답변 생성 중..." 같은 메시지를 표시하는 로직을 여기에 추가할 수 있습니다.
+
+  const response = await fetch('/.netlify/functions/getOpenAiResult', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: question }) // 우리가 만든 함수에 질문을 보냅니다.
+  });
+
+  const data = await response.json();
+  const aiAnswer = data.result;
+
+  console.log('AI의 답변:', aiAnswer); // AI의 답변을 콘솔에 출력합니다.
+  
+  // 이 답변(aiAnswer)을 웹페이지의 특정 요소(예: div)에 표시하는 코드를 여기에 추가하면 됩니다.
+  // document.getElementById('answer-box').innerText = aiAnswer;
+}
+
+// 아래는 함수를 실행하는 예시입니다.
+// 실제로는 사용자가 버튼을 클릭했을 때 이 함수가 실행되도록 만들면 됩니다.
+askMyWebsite("대한민국의 수도는 어디야?");
